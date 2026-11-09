@@ -4,4 +4,3 @@ project(webserver C)
 set(CMAKE_C_STANDARD 23)
 
 add_executable(webserver src/main.c)
-add_executable(client src/client.c)

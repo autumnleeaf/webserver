@@ -1,11 +1,13 @@
 #include <errno.h>
 #include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
 #include <netdb.h>
-#include <string.h>
+#include <stdio.h>
 
 #define BACKLOG 10
+#define BUFFER 1024
 #define PORT "3490"
-
 
 int main() {
     struct sockaddr_storage other_addr;
@@ -30,10 +32,17 @@ int main() {
     addr_size = sizeof other_addr;
     const int new_fd = accept(sockfd, (struct sockaddr*)&other_addr, &addr_size);
 
-    const char* message = "It's U!!!!";
-    const ssize_t bytes_sent = send(new_fd, message, strlen(message), 0);
-    if (bytes_sent == -1) return errno;
-    if (bytes_sent != strlen(message)) { /* handle sending the rest of message */ }
+    char message[BUFFER];
+    const ssize_t bytes_read = recv(new_fd, &message, sizeof(message), 0);
+    if (bytes_read == -1) return errno;
+    if (bytes_read >= 1) {
+        printf("%s", message);
+        const size_t bytes_sent = send(new_fd, message, bytes_read, 0);
+        if (bytes_sent == -1) return errno;
+        if (bytes_sent != bytes_read) { /* handle sending the rest of message */ }
+    }
+
+    close(sockfd);
 
     return 0;
 }
