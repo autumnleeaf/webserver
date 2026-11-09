@@ -1,6 +1,7 @@
 #include <errno.h>
 #include <sys/socket.h>
 #include <netdb.h>
+#include <string.h>
 
 #define BACKLOG 10
 #define PORT "3490"
@@ -28,6 +29,11 @@ int main() {
 
     addr_size = sizeof other_addr;
     const int new_fd = accept(sockfd, (struct sockaddr*)&other_addr, &addr_size);
+
+    const char* message = "It's U!!!!";
+    const ssize_t bytes_sent = send(new_fd, message, strlen(message), 0);
+    if (bytes_sent == -1) return errno;
+    if (bytes_sent != strlen(message)) { /* handle sending the rest of message */ }
 
     return 0;
 }
