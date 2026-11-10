@@ -4,9 +4,10 @@
 #include <unistd.h>
 #include <netdb.h>
 #include <stdio.h>
+#include <string.h>
 
 #define BACKLOG 10
-#define BUFFER 1024
+#define BUFFER 2048
 #define PORT "3490"
 
 int main() {
@@ -36,13 +37,17 @@ int main() {
     const ssize_t bytes_read = recv(new_fd, &message, sizeof(message), 0);
     if (bytes_read == -1) return errno;
     if (bytes_read >= 1) {
-        printf("%s", message);
-        const size_t bytes_sent = send(new_fd, message, bytes_read, 0);
+        size_t bytes_sent = send(new_fd, message, bytes_read, 0);
         if (bytes_sent == -1) return errno;
-        if (bytes_sent != bytes_read) { /* handle sending the rest of message */ }
+        size_t total_bytes_sent = bytes_sent;
+        while (total_bytes_sent < bytes_read) {
+            char new_message[BUFFER];
+            strncpy(new_message, message + total_bytes_sent, bytes_read - total_bytes_sent);
+            bytes_sent = send(new_fd, &new_message, bytes_read - bytes_sent, 0);
+            if (bytes_sent == -1) return errno;
+            total_bytes_sent += bytes_sent;
+        }
     }
-
-    close(sockfd);
 
     return 0;
 }
