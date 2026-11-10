@@ -1,9 +1,7 @@
 #include <errno.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-#include <unistd.h>
 #include <netdb.h>
-#include <stdio.h>
 #include <string.h>
 
 #define BACKLOG 10
