@@ -8,5 +8,5 @@ include_directories(headers)
 add_executable(webserver src/main.c
         src/hashtable.c
         headers/hashtable.h
-        src/request_header.c
-        headers/request_header.h)
+        src/request.c
+        headers/request.h)

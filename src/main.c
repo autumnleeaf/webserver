@@ -6,7 +6,7 @@
 #include <stdlib.h>
 
 #include "hashtable.h"
-#include "request_header.h"
+#include "request.h"
 
 #define BACKLOG 10
 #define BUFFER 2048
@@ -40,11 +40,14 @@ int main() {
     if (bytes_read == -1) return errno;
 
     size_t index = 0;
-    request_header* req_header = create_req_header();
+    request* req_header = create_request();
     if (req_header == NULL) exit(1);
 
-    parse_start_line(req_header, message, &index);
-    parse_fields(req_header, message, &index);
+    if (!parse_start_line(req_header, message, &index) && !parse_fields(req_header, message, &index)) {
+        free_request(req_header);
+        printf("Bad request.\n");
+        exit(1);
+    }
 
     printf("method: %s\n", (char*)req_header->method);
     printf("target: %s\n", (char*)req_header->target);
@@ -55,6 +58,6 @@ int main() {
         printf("key: %s, value: %s\n", iterator.key, (char *)iterator.value);
     }
 
-    free_req_header(req_header);
+    free_request(req_header);
     return 0;
 }

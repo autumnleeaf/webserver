@@ -2,8 +2,8 @@
 // Created by autumn on 11/10/26.
 //
 
-#ifndef WEBSERVER_HASHMAP_H
-#define WEBSERVER_HASHMAP_H
+#ifndef WEBSERVER_HASHTABLE_H
+#define WEBSERVER_HASHTABLE_H
 #include <stddef.h>
 #include <stdint.h>
 
@@ -48,4 +48,4 @@ ht_iterator ht_iterator_init(hashtable* table);
 
 bool ht_iterator_next(ht_iterator* iter);
 
-#endif //WEBSERVER_HASHMAP_H
+#endif //WEBSERVER_HASHTABLE_H
