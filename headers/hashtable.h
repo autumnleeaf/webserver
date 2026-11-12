@@ -20,32 +20,32 @@ typedef struct {
     hash_field* fields;
     size_t capacity;
     size_t length;
-} hash_table;
+} hashtable;
 
 typedef struct {
     const char* key;
     void* value;
 
-    hash_table* _table;
+    hashtable* _table;
     size_t _index;
-} hash_table_iterator;
+} ht_iterator;
 
-hash_table* create_hash_table(void);
+hashtable* create_hashtable();
 
-void free_hash_table(hash_table* table);
+void free_hashtable(hashtable* table);
 
 static uint64_t hash_key(const char* key);
 
-void* hash_table_get(hash_table* table, const char* key);
+void* ht_get(hashtable* table, const char* key);
 
-const char* hash_table_set(hash_table* table, const char* key, void* value);
+const char* ht_set(hashtable* table, const char* key, void* value);
 
-static const char* hash_table_set_entry(hash_field* fields, size_t capacity, const char* key, void* value, size_t* plength);
+static const char* ht_set_entry(hash_field* fields, size_t capacity, const char* key, void* value, size_t* plength);
 
-static bool hash_table_resize(hash_table* table, size_t capacity);
+static bool ht_resize(hashtable* table, size_t capacity);
 
-hash_table_iterator hash_table_iterator_init(hash_table* table);
+ht_iterator ht_iterator_init(hashtable* table);
 
-bool hash_table_iterator_next(hash_table_iterator* iter);
+bool ht_iterator_next(ht_iterator* iter);
 
 #endif //WEBSERVER_HASHMAP_H

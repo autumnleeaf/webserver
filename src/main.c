@@ -4,9 +4,9 @@
 #include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
-#include "../headers/hashtable.h"
+#include "hashtable.h"
+#include "request_header.h"
 
 #define BACKLOG 10
 #define BUFFER 2048
@@ -35,33 +35,26 @@ int main() {
     addr_size = sizeof other_addr;
     const int new_fd = accept(sockfd, (struct sockaddr*)&other_addr, &addr_size);
 
-    char message[BUFFER];
+    uint8_t message[BUFFER];
     const ssize_t bytes_read = recv(new_fd, &message, sizeof(message), 0);
     if (bytes_read == -1) return errno;
-    // Skip initial line until CRLF
+
     size_t index = 0;
-    while (message[index] != '\r' && message[index + 1] != '\n') index++;
-    index += 2;
+    request_header* req_header = create_req_header();
+    if (req_header == NULL) exit(1);
 
-    // Store headers in a hash table
-    hash_table* header_fields = create_hash_table();
-    if (header_fields == NULL) return 1;
+    parse_start_line(req_header, message, &index);
+    parse_fields(req_header, message, &index);
+    
+    printf("method: %s\n", (char*)req_header->method);
+    printf("target: %s\n", (char*)req_header->target);
+    printf("version: %s\n", (char*)req_header->version);
 
-    while (message[index] != '\r' && message[index + 1] != '\n') {
-        // Search for the colon to separate the key and value
-        size_t start_index = index;
-        while (message[index] != ':') index++;
-        char *key = calloc(index - start_index, sizeof(char));
-        strncpy(key, message + start_index, index - start_index);
-        index += 2;
-        start_index = index;
-        while (message[index] != '\r' && message[index + 1] != '\n') index++;
-        char *value = calloc(index - start_index, sizeof(char));
-        strncpy(value, message + start_index, index - start_index);
-        hash_table_set(header_fields, key, value);
-        index += 2;
+    ht_iterator iterator = ht_iterator_init(req_header->fields);
+    while (ht_iterator_next(&iterator)) {
+        printf("key: %s, value: %s\n", iterator.key, (char *)iterator.value);
     }
 
-    free_hash_table(header_fields);
+    free_req_header(req_header);
     return 0;
 }

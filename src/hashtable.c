@@ -4,11 +4,10 @@
 #include <string.h>
 #include <assert.h>
 
-hash_table* create_hash_table(void) {
-    hash_table* table = malloc(sizeof(hash_table));
-    if (table == NULL) {
-        return nullptr;
-    }
+hashtable* create_hashtable() {
+    hashtable* table = malloc(sizeof(hashtable));
+    if (table == NULL) return nullptr;
+
     table->length = 0;
     table->capacity = INITIAL_CAPACITY;
 
@@ -21,10 +20,11 @@ hash_table* create_hash_table(void) {
     return table;
 }
 
-void free_hash_table(hash_table* table) {
-    // for (size_t i = 0; i < table->length; i++) {
-    //     free(table->fields[i].value);
-    // }
+void free_hashtable(hashtable* table) {
+    for (size_t i = 0; i < table->capacity; i++) {
+        free((void*)table->fields[i].key);
+        free((void*)table->fields[i].value);
+    }
     free(table->fields);
     free(table);
 }
@@ -38,7 +38,7 @@ uint64_t hash_key(const char* key) {
     return hash;
 }
 
-void* hash_table_get(hash_table* table, const char* key) {
+void* ht_get(hashtable* table, const char* key) {
     uint64_t hash = hash_key(key);
     size_t index = (size_t)(hash & (uint64_t)(table->capacity - 1));
 
@@ -55,7 +55,7 @@ void* hash_table_get(hash_table* table, const char* key) {
     return nullptr;
 }
 
-static const char* hash_table_set_entry(hash_field* fields, size_t capacity, const char* key, void* value, size_t* plength) {
+static const char* ht_set_entry(hash_field* fields, size_t capacity, const char* key, void* value, size_t* plength) {
     uint64_t hash = hash_key(key);
     size_t index = (size_t)(hash & (uint64_t)(capacity - 1));
 
@@ -74,7 +74,7 @@ static const char* hash_table_set_entry(hash_field* fields, size_t capacity, con
     if (plength != NULL) {
         key = strdup(key);
         if (key == NULL) {
-            return NULL;
+            return nullptr;
         }
         (*plength)++;
     }
@@ -83,7 +83,7 @@ static const char* hash_table_set_entry(hash_field* fields, size_t capacity, con
     return key;
 }
 
-static bool hash_table_resize(hash_table* table, size_t capacity) {
+static bool ht_resize(hashtable* table, size_t capacity) {
     if (capacity < table->capacity) {
         return false;
     }
@@ -96,7 +96,7 @@ static bool hash_table_resize(hash_table* table, size_t capacity) {
     for (size_t i = 0; i < table->capacity; i++) {
         hash_field field = table->fields[i];
         if (field.key != NULL) {
-            hash_table_set_entry(new_fields, capacity, field.key, field.value, NULL);
+            ht_set_entry(new_fields, capacity, field.key, field.value, nullptr);
         }
     }
 
@@ -106,30 +106,30 @@ static bool hash_table_resize(hash_table* table, size_t capacity) {
     return true;
 }
 
-const char* hash_table_set(hash_table* table, const char* key, void* value) {
+const char* ht_set(hashtable* table, const char* key, void* value) {
     assert(value != NULL);
     if (value == NULL) {
         return nullptr;
     }
 
     if (table->length >= table->capacity / 2) {
-        if (!hash_table_resize(table, table->capacity * 2)) {
+        if (!ht_resize(table, table->capacity * 2)) {
             return nullptr;
         }
     }
 
-    return hash_table_set_entry(table->fields, table->capacity, key, value, &table->length);
+    return ht_set_entry(table->fields, table->capacity, key, value, &table->length);
 }
 
-hash_table_iterator hash_table_iterator_init(hash_table* table) {
-    hash_table_iterator iter;
+ht_iterator ht_iterator_init(hashtable* table) {
+    ht_iterator iter;
     iter._table = table;
     iter._index = 0;
     return iter;
 }
 
-bool hash_table_iterator_next(hash_table_iterator* iter) {
-    hash_table* table = iter->_table;
+bool ht_iterator_next(ht_iterator* iter) {
+    hashtable* table = iter->_table;
     while (iter->_index < table->capacity) {
         size_t index = iter->_index;
         iter->_index++;
