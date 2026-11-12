@@ -57,6 +57,7 @@ bool parse_start_line(const request_header* req_header, const uint8_t* message, 
     while (message[*index] != (uint8_t)' ') (*index)++;
     memcpy(req_header->target, message + start_index, *index - start_index);
     (*index)++;
+    start_index = *index;
     while (message[*index] != (uint8_t)'\r' && message[*index + 1] != (uint8_t)'\n') (*index)++;
     memcpy(req_header->version, message + start_index, *index - start_index);
     *index += 2;

@@ -36,7 +36,7 @@ void free_hashtable(hashtable* table);
 
 static uint64_t hash_key(const char* key);
 
-void* ht_get(hashtable* table, const char* key);
+void* ht_get(const hashtable* table, const char* key);
 
 const char* ht_set(hashtable* table, const char* key, void* value);
 

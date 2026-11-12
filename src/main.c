@@ -45,7 +45,7 @@ int main() {
 
     parse_start_line(req_header, message, &index);
     parse_fields(req_header, message, &index);
-    
+
     printf("method: %s\n", (char*)req_header->method);
     printf("target: %s\n", (char*)req_header->target);
     printf("version: %s\n", (char*)req_header->version);

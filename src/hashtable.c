@@ -38,7 +38,7 @@ uint64_t hash_key(const char* key) {
     return hash;
 }
 
-void* ht_get(hashtable* table, const char* key) {
+void* ht_get(const hashtable* table, const char* key) {
     uint64_t hash = hash_key(key);
     size_t index = (size_t)(hash & (uint64_t)(table->capacity - 1));
 
