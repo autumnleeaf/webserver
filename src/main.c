@@ -40,24 +40,40 @@ int main() {
     if (bytes_read == -1) return errno;
 
     size_t index = 0;
-    request* req_header = create_request();
-    if (req_header == NULL) exit(1);
+    request* req = create_request();
+    if (req == NULL) {
+        printf("Request failed to initialize.\n");
+        exit(1);
+    }
 
-    if (!parse_start_line(req_header, message, &index) && !parse_fields(req_header, message, &index)) {
-        free_request(req_header);
+    if (!parse_start_line(req, message, &index)) {
+        free_request(req);
         printf("Bad request.\n");
         exit(1);
     }
 
-    printf("method: %s\n", (char*)req_header->method);
-    printf("target: %s\n", (char*)req_header->target);
-    printf("version: %s\n", (char*)req_header->version);
+    if (!parse_fields(req, message, &index)) {
+        free_request(req);
+        printf("Bad request.\n");
+        exit(1);
+    }
 
-    ht_iterator iterator = ht_iterator_init(req_header->fields);
+    parse_message_body(req, message, index);
+
+    printf("method: %s\n", (char*)req->method);
+    printf("target: %s\n", (char*)req->target);
+    printf("version: %s\n", (char*)req->version);
+
+    ht_iterator iterator = ht_iterator_init(req->fields);
     while (ht_iterator_next(&iterator)) {
         printf("key: %s, value: %s\n", iterator.key, (char *)iterator.value);
     }
 
-    free_request(req_header);
+    if (req->body_length > 0) {
+        printf("body length: %d\n", (int)req->body_length);
+        printf("body: %s\n", (char*)req->body);
+    }
+
+    free_request(req);
     return 0;
 }
