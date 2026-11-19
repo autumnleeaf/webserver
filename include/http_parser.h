@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 #include "hashtable.h"
-#include "request.h"
+#include "util.h"
 
 typedef enum {
     CHUNKED,
