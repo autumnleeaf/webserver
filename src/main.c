@@ -36,31 +36,11 @@ int main() {
     addr_size = sizeof other_addr;
     const int new_fd = accept(sockfd, (struct sockaddr*)&other_addr, &addr_size);
 
-    uint8_t message[BUFFER];
+    char message[BUFFER];
     const ssize_t bytes_read = recv(new_fd, &message, sizeof(message), 0);
     if (bytes_read == -1) return errno;
 
-    request* req = create_request();
-    if (req == NULL) {
-        printf("Request failed to initialize.\n");
-        exit(1);
-    }
-
-    int index = parse_start_line(req->method, req->target, req->version, message);
-    if (index <= 0) {
-        free_request(req);
-        printf("Bad request.\n");
-        exit(1);
-    }
-
-    index = parse_fields(req->fields, message + index);
-    if (index <= 0) {
-        free_request(req);
-        printf("Bad request.\n");
-        exit(1);
-    }
-
-    req->body_length = parse_message_body(req->body, req->fields, message + index);
+    request* req = parse_http_request(message);
 
     printf("method: %s\n", (char*)req->method);
     printf("target: %s\n", (char*)req->target);
