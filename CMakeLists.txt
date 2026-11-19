@@ -3,10 +3,13 @@ project(webserver C)
 
 set(CMAKE_C_STANDARD 23)
 
-include_directories(headers)
+include_directories(include)
 
 add_executable(webserver src/main.c
-        src/hashtable.c
-        headers/hashtable.h
-        src/request.c
-        headers/request.h)
+        src/env/hashtable.c
+        include/hashtable.h
+        src/net/request.c
+        include/request.h
+        src/http/http_parser.c
+        include/http_parser.h
+        include/definitions.h)

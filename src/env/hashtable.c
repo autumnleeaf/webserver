@@ -1,4 +1,5 @@
-#include "../headers/hashtable.h"
+#include "hashtable.h"
+#include "definitions.h"
 
 #include <stdlib.h>
 #include <string.h>

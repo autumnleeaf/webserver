@@ -7,10 +7,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define FNV_OFFSET 14695981039346656037UL
-#define FNV_PRIME 1099511628211UL
-#define INITIAL_CAPACITY 16
-
 typedef struct {
     char* key;
     char* value;

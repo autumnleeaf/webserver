@@ -7,6 +7,7 @@
 
 #include "hashtable.h"
 #include "request.h"
+#include "http_parser.h"
 
 #define BACKLOG 10
 #define BUFFER 2048
@@ -39,26 +40,27 @@ int main() {
     const ssize_t bytes_read = recv(new_fd, &message, sizeof(message), 0);
     if (bytes_read == -1) return errno;
 
-    size_t index = 0;
     request* req = create_request();
     if (req == NULL) {
         printf("Request failed to initialize.\n");
         exit(1);
     }
 
-    if (!parse_start_line(req, message, &index)) {
+    int index = parse_start_line(req->method, req->target, req->version, message);
+    if (index <= 0) {
         free_request(req);
         printf("Bad request.\n");
         exit(1);
     }
 
-    if (!parse_fields(req, message, &index)) {
+    index = parse_fields(req->fields, message + index);
+    if (index <= 0) {
         free_request(req);
         printf("Bad request.\n");
         exit(1);
     }
 
-    parse_message_body(req, message, index);
+    req->body_length = parse_message_body(req->body, req->fields, message + index);
 
     printf("method: %s\n", (char*)req->method);
     printf("target: %s\n", (char*)req->target);
