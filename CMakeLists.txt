@@ -12,4 +12,6 @@ add_executable(webserver src/main.c
         include/request.h
         src/http/http_parser.c
         include/http_parser.h
-        include/definitions.h)
+        include/definitions.h
+        src/net/response.c
+        include/response.h)
