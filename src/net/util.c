@@ -1,4 +1,4 @@
-#include "request.h"
+#include "util.h"
 #include "definitions.h"
 
 #include <stdio.h>
@@ -12,7 +12,7 @@ request* create_request() {
     req->method = calloc(MAX_SIZE_METHOD, sizeof(uint8_t));
     if (req->method == NULL) {
         free(req);
-        printf("Method failed to allocate.\n");
+        fprintf(stderr, "Method failed to allocate.\n");
         return nullptr;
     }
 
@@ -20,7 +20,7 @@ request* create_request() {
     if (req->target == NULL) {
         free(req->method);
         free(req);
-        printf("Target failed to allocate.\n");
+        fprintf(stderr, "Target failed to allocate.\n");
         return nullptr;
     }
 
@@ -29,7 +29,7 @@ request* create_request() {
         free(req->method);
         free(req->target);
         free(req);
-        printf("Version failed to allocate.\n");
+        fprintf(stderr,"Version failed to allocate.\n");
         return nullptr;
     }
 
@@ -39,13 +39,35 @@ request* create_request() {
         free(req->target);
         free(req->version);
         free(req);
-        printf("Hash table failed to allocate.\n");
+        fprintf(stderr, "Hash table failed to allocate.\n");
         return nullptr;
     }
 
     req->body = nullptr;
 
     return req;
+}
+
+response* create_response() {
+    response* res = malloc(sizeof(response));
+    if (res == NULL) return nullptr;
+
+    res->version = calloc(MAX_SIZE_VERSION, sizeof(uint8_t));
+    if (res->version == NULL) {
+        free(res);
+        fprintf(stderr, "Version failed to allocate.\n");
+        return nullptr;
+    }
+
+    res->reason = calloc(MAX_SIZE_REASON, sizeof(uint8_t));
+    if (res->reason == NULL) {
+        free(res->reason);
+        free(res);
+        fprintf(stderr, "Reason failed to allocate.\n");
+        return nullptr;
+    }
+
+    return res;
 }
 
 void free_request(request* req) {
@@ -55,4 +77,10 @@ void free_request(request* req) {
     free_hashtable(req->fields);
     if (req->body != NULL) free(req->body);
     free(req);
+}
+
+void free_response(response* res) {
+    free(res->version);
+    free(res->reason);
+    free(res);
 }

@@ -8,10 +8,10 @@ include_directories(include)
 add_executable(webserver src/main.c
         src/env/hashtable.c
         include/hashtable.h
-        src/net/request.c
-        include/request.h
+        src/net/util.c
+        include/util.h
         src/http/http_parser.c
         include/http_parser.h
         include/definitions.h
-        src/net/response.c
-        include/response.h)
+        src/net/listener.c
+        include/listener.h)

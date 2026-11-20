@@ -1,5 +1,5 @@
-#ifndef WEBSERVER_REQUEST_H
-#define WEBSERVER_REQUEST_H
+#ifndef WEBSERVER_UTIL_H
+#define WEBSERVER_UTIL_H
 #include <stdint.h>
 
 #include "hashtable.h"
@@ -21,8 +21,18 @@ typedef struct {
     size_t body_length;
 } request;
 
+typedef struct {
+    uint8_t* version;
+    uint16_t status;
+    uint8_t* reason;
+} response;
+
 request* create_request();
+
+response* create_response();
 
 void free_request(request* req);
 
-#endif //WEBSERVER_REQUEST_H
+void free_response(response* response);
+
+#endif //WEBSERVER_UTIL_H
