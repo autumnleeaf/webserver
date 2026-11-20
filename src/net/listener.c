@@ -89,18 +89,18 @@ static void wait_for_requests(const int sockfd) {
             continue;
         }
 
-        char message[BUFFER];
-        const ssize_t bytes_read = recv(new_fd, &message, sizeof(message), 0);
-        if (bytes_read == -1) {
-            fprintf(stderr, "Receive Error: %s\n", strerror(errno));
-            exit(1);
-        }
-        handle_request(message);
+        handle_request(new_fd);
         close(new_fd);
     }
 }
 
-static void handle_request(const char* message) {
+static void handle_request(const int new_fd) {
+    char message[BUFFER];
+    const ssize_t bytes_read = recv(new_fd, &message, sizeof(message), 0);
+    if (bytes_read == -1) {
+        fprintf(stderr, "Receive Error: %s\n", strerror(errno));
+        exit(1);
+    }
     request* req = parse_http_request(message);
 
     printf("method: %s\n", (char*)req->method);
@@ -111,6 +111,8 @@ static void handle_request(const char* message) {
     while (ht_iterator_next(&iterator)) {
         printf("key: %s, value: %s\n", iterator.key, (char *)iterator.value);
     }
+
+    printf("\n");
 
     if (req->body_length > 0) {
         printf("body length: %d\n", (int)req->body_length);

@@ -9,6 +9,6 @@ static int get_bound_sockfd(struct addrinfo* serv_info);
 
 static void wait_for_requests(int sockfd);
 
-static void handle_request(const char* message);
+static void handle_request(int new_fd);
 
 #endif //WEBSERVER_LISTENER_H
