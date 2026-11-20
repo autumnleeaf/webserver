@@ -8,25 +8,25 @@
 request* parse_http_request(const char* raw_data) {
     request* req = create_request();
     if (req == NULL) {
-        printf("Request failed to initialize.\n");
+        fprintf(stderr, "Request failed to initialize.\n");
         exit(1);
     }
 
     int index = parse_start_line(req->method, req->target, req->version, raw_data);
     if (index <= 0) {
         free_request(req);
-        printf("Bad request.\n");
+        fprintf(stderr, "Bad request.\n");
         exit(1);
     }
 
-    index = parse_fields(req->fields, raw_data + index);
+    index += parse_fields(req->fields, raw_data + index);
     if (index <= 0) {
         free_request(req);
-        printf("Bad request.\n");
+        fprintf(stderr, "Bad request.\n");
         exit(1);
     }
 
-    req->body_length = parse_message_body(req->body, req->fields, raw_data + index);
+    req->body_length = parse_message_body(req, raw_data + index);
     return req;
 }
 
@@ -68,9 +68,9 @@ static int parse_fields(hashtable* fields, const char* raw_data) {
     return (int)index + 2;
 }
 
-static size_t parse_message_body(uint8_t* body, const hashtable* fields, const char* raw_data) {
-    uint8_t* raw_transfer_encoding = ht_get(fields, "Transfer-Encoding");
-    uint8_t* content_length = ht_get(fields, "Content-Length");
+static size_t parse_message_body(request* req, const char* raw_data) {
+    uint8_t* raw_transfer_encoding = ht_get(req->fields, "Transfer-Encoding");
+    uint8_t* content_length = ht_get(req->fields, "Content-Length");
 
     if (raw_transfer_encoding != NULL && content_length != NULL) {
         printf("Request smuggling detected.");
@@ -82,19 +82,26 @@ static size_t parse_message_body(uint8_t* body, const hashtable* fields, const c
         size_t encoding_length = get_encodings(raw_transfer_encoding, encodings);
         if (encodings[encoding_length - 1] != CHUNKED) {
             // Return a 400 Bad Request error
-            printf("400: Bad request.\n");
+            fprintf(stderr, "400: Bad request.\n");
             exit(-1);
         }
-        return decode_body(body, encodings, encoding_length, raw_data);
+        return decode_body(req->body, encodings, encoding_length, raw_data);
     }
 
     if (content_length != NULL) {
         char* endptr;
         size_t length = (size_t)strtol((char*)content_length, &endptr, 10);
-        body = calloc(length, sizeof(uint8_t));
-        if (body == NULL) length = 0;
-        for (size_t i = 0; i < length; i++) {
-            body[i] = raw_data[i];
+        req->body = calloc(length, sizeof(uint8_t));
+        if (req->body == NULL) {
+            fprintf(stderr, "Failed to allocate memory for body.\n");
+        }
+        if (length > 0) {
+            while (raw_data[0] == '\n' || raw_data[0] == '\r' || raw_data[0] == ' ') {
+                raw_data++;
+            }
+            for (size_t i = 0; i < length; i++) {
+                req->body[i] = (uint8_t)raw_data[i];
+            }
         }
         return length;
     }
