@@ -12,11 +12,17 @@
 #include <string.h>
 
 int listener(const char* host, const char* port) {
-    struct sockaddr_storage other_addr;
-    socklen_t addr_size;
-    struct addrinfo hints = {0}, *serv_info, *p_info;
-    int sockfd = 0, new_fd = 0, reuse_addr = 1;
+    struct addrinfo* serv_info = get_serve_info(host, port);
 
+    int sockfd = get_bound_sockfd(serv_info);
+
+    wait_for_requests(sockfd);
+
+    return 0;
+}
+
+static struct addrinfo* get_serve_info(const char* host, const char* port) {
+    struct addrinfo hints = {0}, *serv_info;
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
@@ -28,6 +34,12 @@ int listener(const char* host, const char* port) {
         exit(1);
     }
 
+    return serv_info;
+}
+
+static int get_bound_sockfd(struct addrinfo* serv_info) {
+    int sockfd = 0, reuse_addr = 1;
+    struct addrinfo *p_info;
     for (p_info = serv_info; p_info != NULL; p_info = p_info->ai_next) {
         if ((sockfd = socket(p_info->ai_family, p_info->ai_socktype, p_info->ai_protocol)) == -1) {
             fprintf(stderr, "Socket Error: %s\n", strerror(errno));
@@ -56,14 +68,22 @@ int listener(const char* host, const char* port) {
         exit(1);
     }
 
+    return sockfd;
+}
+
+static void wait_for_requests(const int sockfd) {
+    struct sockaddr_storage their_addr;
+    socklen_t addr_size;
+    int new_fd = 0;
+
     if (listen(sockfd, BACKLOG) == -1) {
         fprintf(stderr, "Listen Error: %s\n", strerror(errno));
         exit(1);
     }
 
     while (true) {
-        addr_size = sizeof(other_addr);
-        new_fd = accept(sockfd, (struct sockaddr*)&other_addr, &addr_size);
+        addr_size = sizeof(their_addr);
+        new_fd = accept(sockfd, (struct sockaddr*)&their_addr, &addr_size);
         if (new_fd == -1) {
             fprintf(stderr, "Accept Error: %s\n", strerror(errno));
             continue;
@@ -78,8 +98,6 @@ int listener(const char* host, const char* port) {
         handle_request(message);
         close(new_fd);
     }
-
-    return 0;
 }
 
 static void handle_request(const char* message) {
